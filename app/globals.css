@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 自定义样式 */
+.border-3 {
+  border-width: 3px;
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* 确保浮标组件在移动设备上也能正常工作 */
+@media (max-width: 768px) {
+  .fixed {
+    position: fixed !important;
+  }
+}
+
+/* 拖动组件优化 */
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+/* 防止拖动时的文字选中 */
+.draggable-element {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 移动端触摸优化 */
+@media (max-width: 768px) {
+  .draggable-element {
+    touch-action: none;
+  }
+}
+
+/* 确保拖动时不会触发页面滚动 */
+.dragging {
+  overflow: hidden;
+}
+
+/* 性能优化样式 */
+.draggable-optimized {
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  
+  /* 优化重绘 */
+  will-change: transform;
+  
+  /* 防止闪烁 */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  
+  /* 优化合成层 */
+  contain: layout style paint;
+}
+
+/* 拖动时的性能优化 */
+.dragging-optimized {
+  /* 启用硬件加速 */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  
+  /* 优化动画性能 */
+  will-change: transform;
+  
+  /* 防止子元素重绘 */
+  contain: layout style paint;
+}
+
+/* 平滑过渡动画 */
+.smooth-transition {
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 移动端性能优化 */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    /* 减少移动端的重绘 */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    
+    /* 优化触摸响应 */
+    touch-action: manipulation;
+  }
+}
