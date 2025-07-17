@@ -155,15 +155,17 @@ function buildPromptFromPath(path: string, userAgent: string): string {
   // 根据路径段构建有意义的提示词
   return `你是一个 HTTP server ，用户当前在使用 GET 方法，请求路径是 '${decodeURIComponent(path)}' ，` +
     `用户设备信息：${deviceType}，使用${browserInfo}，` +
+    `现在的时间是： ${new Date().toLocaleString()}` +
     `请你对此请求和路径写出对应的 html 文档，HTML 文档的 head 标签中必须包含一个 charset=utf-8 标签，` +
     `搭配 Bootstrap CSS，采用 Material Design 原则进行 UI/UX 设计，外层背景色为#f9fafb，注意你实现的文字和背景颜色对比度，以便能够清晰阅读，` +
     `Bootstrap 的 css 链接为：https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css` +
     `Bootstrap 的 js 链接为：https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js` +
-    `除了 html 内容外不要返回其他内容！最少要有5个超链接，路径必须是本站 ${hostUrl} 的绝对路径，不要使用相对路径。` +
+    `除了 html 内容外不要返回其他内容！最少要有5个超链接，路径必须是本站 ${hostUrl} 当前路径的子路径绝对路径，不要使用相对路径。` +
     `直接输出html的内容，不要在开头或结尾加上md。` +
     `至少需要包含1张图片，支持你使用适量图片优化页面阅读效果，` +
     `图片使用img标签，注意设置好图片的尺寸，并使用'https://cloud-image.ullrai.com/q/{图片名称}'，其中图片名称是你认为应该展示的图片名称，中英文均可` +
-    `如果需要进行代码示例，可以用<code>标签包裹！` +
     `特别注意适配${deviceType}，确保在${deviceType}上有良好的显示效果和交互体验。` +
-    `确保网站内容丰富，字数至少1000字。_nothink`;
+    `确保网站内容丰富，字数至少1000字。` +
+    `不要在生成的网页中的内容里，提及上述原则，上述原则只作为执行标准，不作为内容的一部分。` +
+    `_nothink`;
 }
