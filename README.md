@@ -90,6 +90,14 @@ npm run dev
 - `/时间/古代/唐朝` - 历史穿越
 - `/音乐/古典/贝多芬` - 音乐殿堂
 
+### ✨ 一键部署
+
+点击下方按钮，即可将此项目部署到你自己的 Vercel 账户上！
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/xiexin12138/any-website.git&project-name=any-website&repository-name=any-website&env=SILICON_FLOW_API_ENDPOINT,SILICON_FLOW_API_KEY,MAX_TOKENS,NEXT_PUBLIC_HOST_URL&envDescription=你需要提供硅基流动API的URL地址、API密钥和最大token数、以及部署的域名地址&envLink=https://github.com/xiexin12138/any-website/blob/main/env-setup.md)
+
+---
+
 ## 📁 项目结构
 
 ```
