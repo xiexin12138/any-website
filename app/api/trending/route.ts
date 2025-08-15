@@ -21,7 +21,10 @@ const getTrendingSearches = async (limit: number, category?: string) => {
   
   return await prisma.trendingSearch.findMany({
     where,
-    orderBy: { count: 'desc' },
+    orderBy: [
+      { count: 'desc' },
+      { updatedAt: 'desc' }
+    ],
     take: limit,
     select: {
       path: true,
