@@ -126,6 +126,7 @@ export default function Home() {
               <span className="text-lg sm:text-xl font-bold text-gray-900">网站任意门</span>
             </div>
             <div className="flex items-center space-x-3 sm:space-x-4">
+              <span className="hidden sm:block text-sm text-gray-500">觉得好玩请给我点一个 star ✨</span>
               <a 
                 href="https://github.com/xiexin12138/any-website" 
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm sm:text-base transition-colors duration-200"
@@ -266,7 +267,7 @@ export default function Home() {
              <button
                onClick={fetchTrendingSearches}
                disabled={isLoadingTrending}
-               className="flex items-center justify-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 rounded-lg hover:bg-gray-50"
+               className="flex items-center cursor-pointer justify-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 rounded-lg hover:bg-gray-50"
                title="刷新热门搜索"
              >
                <svg 
@@ -288,34 +289,103 @@ export default function Home() {
              </div>
            ) : trendingSearches.length > 0 ? (
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-               {trendingSearches.map((item, index) => (
-                 <div key={index} className="group">
-                   <Link
-                     href={`/${item.path}`}
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     className="block bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-purple-50 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md border border-gray-200 hover:border-blue-200"
-                   >
-                     <div className="flex items-center justify-between mb-2">
-                       <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-                         {item.category}
-                       </span>
-                       <span className="text-xs text-gray-400 flex items-center">
-                         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                           <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                         </svg>
-                         {item.count}
-                       </span>
-                     </div>
-                     <p className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
-                       {item.path.split('/').pop()}
-                     </p>
-                     <p className="text-xs text-gray-500 mt-1 font-mono">
-                       /{item.path}
-                     </p>
-                   </Link>
-                 </div>
-               ))}
+               {trendingSearches.map((item, index) => {
+                  const isTopThree = index < 3;
+                  const rankEmojis = ['🥇', '🥈', '🥉'];
+                  
+                  // 根据排名设置不同的样式 - 简洁自然的设计
+                   const getRankStyle = (rank: number) => {
+                     switch (rank) {
+                       case 0: // 第一名 - 简洁突出
+                         return {
+                           badge: 'bg-blue-600',
+                           bg: 'bg-white hover:bg-blue-50',
+                           border: 'border-2 border-blue-200 hover:border-blue-300',
+                           category: 'text-blue-700 bg-blue-50',
+                           count: 'text-blue-600 font-semibold',
+                           title: 'text-gray-900 group-hover:text-blue-700 font-semibold',
+                           path: 'text-blue-600',
+                           shadow: 'shadow-lg shadow-blue-100'
+                         };
+                       case 1: // 第二名 - 次要突出
+                         return {
+                           badge: 'bg-gray-600',
+                           bg: 'bg-white hover:bg-gray-50',
+                           border: 'border-2 border-gray-200 hover:border-gray-300',
+                           category: 'text-gray-700 bg-gray-50',
+                           count: 'text-gray-600 font-medium',
+                           title: 'text-gray-900 group-hover:text-gray-700 font-medium',
+                           path: 'text-gray-600',
+                           shadow: 'shadow-md shadow-gray-100'
+                         };
+                       case 2: // 第三名 - 轻微突出
+                         return {
+                           badge: 'bg-amber-600',
+                           bg: 'bg-white hover:bg-amber-50',
+                           border: 'border border-amber-200 hover:border-amber-300',
+                           category: 'text-amber-700 bg-amber-50',
+                           count: 'text-amber-600',
+                           title: 'text-gray-900 group-hover:text-amber-700',
+                           path: 'text-amber-600',
+                           shadow: 'shadow-sm shadow-amber-100'
+                         };
+                       default:
+                         return {
+                           badge: '',
+                           bg: 'bg-white hover:bg-gray-50',
+                           border: 'border border-gray-200 hover:border-gray-300',
+                           category: 'text-gray-500 bg-gray-100',
+                           count: 'text-gray-400',
+                           title: 'text-gray-900 group-hover:text-blue-600',
+                           path: 'text-gray-500',
+                           shadow: ''
+                         };
+                     }
+                   };
+                  
+                  const style = getRankStyle(index);
+                  
+                  return (
+                    <div key={index} className={`group ${isTopThree ? 'relative' : ''}`}>
+                       {isTopThree && (
+                         <div className="absolute -top-2 -right-2 z-10">
+                           <div className={`w-8 h-8 ${style.badge} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
+                             {index + 1}
+                           </div>
+                         </div>
+                       )}
+                       <Link
+                         href={`/${item.path}`}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className={`block rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md ${style.bg} ${style.border} ${style.shadow}`}
+                       >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            {isTopThree && (
+                              <span className="text-lg">{rankEmojis[index]}</span>
+                            )}
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${style.category}`}>
+                              {item.category}
+                            </span>
+                          </div>
+                          <span className={`text-xs flex items-center ${style.count}`}>
+                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {item.count}
+                          </span>
+                        </div>
+                        <p className={`text-sm sm:text-base font-medium transition-colors duration-200 line-clamp-2 ${style.title}`}>
+                          {item.path.split('/').pop()}
+                        </p>
+                        <p className={`text-xs mt-1 font-mono ${style.path}`}>
+                          /{item.path}
+                        </p>
+                      </Link>
+                    </div>
+                  );
+                })}
              </div>
            ) : (
              <div className="text-center py-12">
