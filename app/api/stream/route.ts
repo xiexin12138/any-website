@@ -164,7 +164,7 @@ function buildPromptFromPath(path: string, userAgent: string): string {
     `直接输出html的内容，不要在开头或结尾加上md。` +
     `至少需要包含1张图片，支持你使用适量图片优化页面阅读效果，` +
     `图片使用img标签，注意设置好图片的尺寸，并使用'https://cloud-image.ullrai.com/q/{图片名称}'，其中图片名称是你认为应该展示的图片名称，中英文均可` +
-    `特别注意适配${deviceType}，确保在${deviceType}上有良好的显示效果和交互体验。` +
+    `特别注意适配${deviceType}，确保在${deviceType}上有良好的显示效果和交互体验，并且如果是移动端，要设置好meta标签和控制好宽度。` +
     `确保网站内容丰富，字数至少1000字。` +
     `不要在生成的网页中的内容里，提及上述原则，上述原则只作为执行标准，不作为内容的一部分。` +
     `_nothink`;
