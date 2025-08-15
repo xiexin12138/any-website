@@ -15,11 +15,14 @@ datasource db {
 }
 
 // 热门搜索模型
+// - 用途 ：存储每个路径的搜索次数和分类
+// 热门搜索模型
 model TrendingSearch {
   id        String   @id @default(cuid())
   path      String
   category  String
   count     Int      @default(1)
+  isDeleted Boolean  @default(false) // 软删除标志，用于内容审查
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,6 +31,8 @@ model TrendingSearch {
 }
 
 // 用户搜索记录模型（用于去重）
+// - 用途 ：记录用户每日搜索，防止重复计数
+// - 特点 ：临时数据，定期清理
 model UserSearchLog {
   id        String   @id @default(cuid())
   path      String
@@ -40,6 +45,8 @@ model UserSearchLog {
 }
 
 // 搜索记录模型
+// - 用途 ：完整的搜索历史，包含用户信息
+// - 特点 ：原始数据，用于分析和审计
 model SearchRecord {
   id        String   @id @default(cuid())
   path      String

@@ -17,7 +17,10 @@ const getTodayString = (): string => {
 
 // 获取热门搜索数据
 const getTrendingSearches = async (limit: number, category?: string) => {
-  const where = category && category !== 'all' ? { category } : {};
+  const where = {
+    isDeleted: false, // 过滤被软删除的内容
+    ...(category && category !== 'all' ? { category } : {})
+  };
   
   return await prisma.trendingSearch.findMany({
     where,
