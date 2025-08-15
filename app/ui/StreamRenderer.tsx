@@ -36,7 +36,7 @@ export default function StreamRenderer({ path }: StreamRendererProps) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              path: path,
+              path: decodeURIComponent(path),
               category: '用户搜索'
             }),
           });
