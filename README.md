@@ -12,6 +12,8 @@
 - **⚡ 实时生成** - 内容实时生成，就像魔法一样，你输入什么，AI就为你创造什么
 - **🎮 娱乐探索** - 纯粹为了好玩！探索不同的路径，发现AI为你准备的奇妙内容
 - **🎲 随机探索** - 点击随机按钮，跳出信息茧房，发现新的领域
+- **📊 热门统计** - 智能记录用户搜索，展示热门内容，支持去重防刷
+- **🔍 搜索记录** - 完整的搜索历史和数据分析功能
 
 ## 🛠️ 技术栈
 
@@ -25,6 +27,9 @@
 - **Next.js API Routes** - 服务端API接口
 - **流式响应** - 支持实时内容流式传输
 - **Shadow DOM** - 隔离的内容渲染环境
+- **Prisma ORM** - 类型安全的数据库操作
+- **PostgreSQL** - 可靠的关系型数据库
+- **Supabase** - 现代化的数据库服务
 
 ### AI集成
 - **硅基流动API** - 大语言模型接口
@@ -48,17 +53,52 @@ npm install
 ### 环境配置
 通过 `cp .env.example .env` 创建 `.env` 文件并配置以下环境变量：
 
+#### 🤖 AI模型配置（必需）
 ```env
 # 硅基流动API配置
-SILICON_FLOW_API_ENDPOINT=your_api_endpoint
-SILICON_FLOW_API_KEY=your_api_key
-SILICON_FLOW_MODEL=your_model_name
+SILICON_FLOW_API_ENDPOINT=https://api.siliconflow.cn/v1/chat/completions
+SILICON_FLOW_API_KEY=your_api_key_here
+SILICON_FLOW_MODEL=Qwen/Qwen3-Coder-480B-A35B-Instruct
+SILICON_FLOW_FREE_MODEL=Qwen/Qwen3-8B
 MAX_TOKENS=8192
+```
 
-
-<!-- 如果要部署到服务器，这里请填写上你的域名以确保大模型生成的URL是准确的 -->
+#### 🌐 应用配置（必需）
+```env
+# 主机地址（部署时请填写实际域名）
 NEXT_PUBLIC_HOST_URL=localhost:3000
 ```
+
+#### 📊 数据库配置（可选）
+如果需要热门搜索和数据统计功能，请配置Supabase数据库：
+```env
+# Supabase Database Configuration
+POSTGRES_URL="your_postgres_url_here"
+POSTGRES_PRISMA_URL="your_postgres_prisma_url_here"
+POSTGRES_URL_NON_POOLING="your_postgres_url_non_pooling_here"
+POSTGRES_USER="your_postgres_user_here"
+POSTGRES_PASSWORD="your_postgres_password_here"
+POSTGRES_DATABASE="your_postgres_database_here"
+POSTGRES_HOST="your_postgres_host_here"
+
+# Supabase
+SUPABASE_URL="your_supabase_url_here"
+NEXT_PUBLIC_SUPABASE_URL="your_supabase_url_here"
+SUPABASE_JWT_SECRET="your_supabase_jwt_secret_here"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key_here"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key_here"
+```
+
+#### 📈 分析工具配置（可选）
+```env
+# 网站访问统计
+NEXT_PUBLIC_ANALYTICS_URL=https://analytics.gptnb.xyz/js/script.js
+```
+
+> 💡 **提示**：
+> - 必需配置：AI模型和应用配置是运行的基本要求
+> - 数据库配置：不配置也能正常使用，但无法使用热门搜索功能
+> - 分析工具：用于网站访问统计，可选配置
 
 ### 启动开发服务器
 ```bash
@@ -106,13 +146,22 @@ any-website/
 │   ├── [...slug]/         # 动态路由页面
 │   ├── api/               # API路由
 │   │   ├── light-me/      # 随机词汇生成API
-│   │   └── stream/        # 流式内容生成API
+│   │   ├── stream/        # 流式内容生成API
+│   │   └── trending/      # 热门搜索API
 │   ├── components/        # 共享组件
+│   ├── lib/              # 库文件
+│   │   └── prisma.ts     # 数据库连接
 │   ├── ui/               # UI组件
 │   │   ├── StreamRenderer.tsx
 │   │   └── DraggableLoadingIndicator.tsx
 │   └── utils/            # 工具函数
+├── prisma/               # 数据库配置
+│   └── schema.prisma     # 数据库模型
+├── scripts/              # 脚本文件
+│   ├── init-db.js       # 数据库初始化
+│   └── cleanup-logs.js  # 数据清理
 ├── public/               # 静态资源
+├── .env.example         # 环境变量示例
 └── package.json         # 项目配置
 ```
 
@@ -131,6 +180,24 @@ pnpm start
 ### 代码检查
 ```bash
 pnpm lint
+```
+
+### 数据库管理
+```bash
+# 推送数据库架构更新
+pnpm db:push
+
+# 生成Prisma客户端
+pnpm db:generate
+
+# 初始化数据库（首次运行）
+pnpm db:init
+
+# 打开数据库管理界面
+pnpm db:studio
+
+# 清理过期数据
+pnpm db:cleanup
 ```
 
 ### 技术特点
@@ -154,6 +221,17 @@ pnpm lint
 - 移动端优先的设计理念
 - 支持各种屏幕尺寸
 - 优雅的加载动画
+
+#### 5. 数据统计系统
+- 热门搜索统计和排序
+- 用户搜索去重（同一用户一天内相同搜索只记录一次）
+- 搜索记录和数据分析
+- 自动数据清理机制
+
+#### 6. 生产环境优化
+- 开发环境不记录搜索数据
+- 只在页面成功渲染后记录统计
+- 智能的用户标识和隐私保护
 
 ## 🤝 贡献指南
 
