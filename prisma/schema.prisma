@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// 热门搜索模型
+model TrendingSearch {
+  id        String   @id @default(cuid())
+  path      String
+  category  String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([path])
+  @@map("trending_searches")
+}
+
+// 搜索记录模型
+model SearchRecord {
+  id        String   @id @default(cuid())
+  path      String
+  category  String?
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@map("search_records")
+}

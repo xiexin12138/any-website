@@ -6,10 +6,19 @@ import { useState, useEffect } from "react";
 const RANDOM_WORDS_KEY = "random_words_history";
 const MAX_WORDS = 100;
 
+// 热门搜索项类型定义
+interface TrendingSearchItem {
+  path: string;
+  count: number;
+  category: string;
+}
+
 export default function Home() {
   const [searchPath, setSearchPath] = useState("");
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
   const [randomWordsHistory, setRandomWordsHistory] = useState<string[]>([]);
+  const [trendingSearches, setTrendingSearches] = useState<TrendingSearchItem[]>([]);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(false);
 
   // 从本地存储加载历史记录
   useEffect(() => {
@@ -24,6 +33,27 @@ export default function Home() {
     }
   }, []);
 
+  // 获取热门搜索数据的函数
+  const fetchTrendingSearches = async () => {
+    try {
+      setIsLoadingTrending(true);
+      const response = await fetch('/api/trending?limit=8');
+      if (response.ok) {
+        const data = await response.json();
+        setTrendingSearches(data.data || []);
+      }
+    } catch (error) {
+      console.error('获取热门搜索失败:', error);
+    } finally {
+      setIsLoadingTrending(false);
+    }
+  };
+
+  // 加载热门搜索数据
+  useEffect(() => {
+    fetchTrendingSearches();
+  }, []);
+
   // 保存词汇到本地存储
   const saveWordToHistory = (word: string) => {
     try {
@@ -35,9 +65,25 @@ export default function Home() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchPath.trim()) {
+      // 记录搜索到热门搜索
+      try {
+        await fetch('/api/trending', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            path: searchPath.trim(),
+            category: '用户搜索'
+          }),
+        });
+      } catch (error) {
+        console.error('记录搜索失败:', error);
+      }
+      
       window.open(`/${searchPath.trim()}`, '_blank');
     }
   };
@@ -219,6 +265,87 @@ export default function Home() {
           </div>
         </div>
 
+
+        {/* 大家都在搜 */}
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg mb-12 sm:mb-16">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center sm:text-left">
+               🔥 大家都在搜
+             </h2>
+             <button
+               onClick={fetchTrendingSearches}
+               disabled={isLoadingTrending}
+               className="flex items-center justify-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 rounded-lg hover:bg-gray-50"
+               title="刷新热门搜索"
+             >
+               <svg 
+                 className={`w-4 h-4 ${isLoadingTrending ? 'animate-spin' : ''}`} 
+                 fill="none" 
+                 stroke="currentColor" 
+                 viewBox="0 0 24 24"
+               >
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+               </svg>
+               <span>刷新数据</span>
+             </button>
+           </div>
+          
+          {isLoadingTrending ? (
+             <div className="flex justify-center items-center py-8">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+               <span className="ml-2 text-gray-600">加载中...</span>
+             </div>
+           ) : trendingSearches.length > 0 ? (
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+               {trendingSearches.map((item, index) => (
+                 <div key={index} className="group">
+                   <Link
+                     href={`/${item.path}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="block bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-purple-50 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md border border-gray-200 hover:border-blue-200"
+                   >
+                     <div className="flex items-center justify-between mb-2">
+                       <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                         {item.category}
+                       </span>
+                       <span className="text-xs text-gray-400 flex items-center">
+                         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                           <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                         </svg>
+                         {item.count}
+                       </span>
+                     </div>
+                     <p className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+                       {item.path.split('/').pop()}
+                     </p>
+                     <p className="text-xs text-gray-500 mt-1 font-mono">
+                       /{item.path}
+                     </p>
+                   </Link>
+                 </div>
+               ))}
+             </div>
+           ) : (
+             <div className="text-center py-12">
+               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                 </svg>
+               </div>
+               <h3 className="text-lg font-medium text-gray-900 mb-2">暂无热门搜索</h3>
+               <p className="text-gray-500 mb-4">成为第一个探索者，开始你的搜索之旅吧！</p>
+               <p className="text-sm text-gray-400">💡 试试在上方搜索框输入任何感兴趣的内容</p>
+             </div>
+           )}
+          
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-500">
+              💡 这些是最近大家搜索最多的内容，点击即可探索
+            </p>
+          </div>
+        </div>
+
         {/* 特性展示 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
           <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-200">
@@ -251,6 +378,7 @@ export default function Home() {
             </p>
           </div>
         </div>
+
 
         {/* 使用示例 */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg mb-12 sm:mb-16">
