@@ -27,6 +27,18 @@ model TrendingSearch {
   @@map("trending_searches")
 }
 
+// 用户搜索记录模型（用于去重）
+model UserSearchLog {
+  id        String   @id @default(cuid())
+  path      String
+  userHash  String   // 用户标识的哈希值
+  date      String   // 格式：YYYY-MM-DD
+  createdAt DateTime @default(now())
+
+  @@unique([path, userHash, date])
+  @@map("user_search_logs")
+}
+
 // 搜索记录模型
 model SearchRecord {
   id        String   @id @default(cuid())

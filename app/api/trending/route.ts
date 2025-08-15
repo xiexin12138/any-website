@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+import crypto from 'crypto';
+
+// 生成用户标识哈希
+const generateUserHash = (ip: string | null, userAgent: string | null): string => {
+  const identifier = `${ip || 'unknown'}-${userAgent || 'unknown'}`;
+  return crypto.createHash('sha256').update(identifier).digest('hex');
+};
+
+// 获取今天的日期字符串
+const getTodayString = (): string => {
+  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+};
 
 
 
@@ -80,13 +92,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
+    const userAgent = request.headers.get('user-agent');
+    const userHash = generateUserHash(ip, userAgent);
+    const today = getTodayString();
+
+    // 检查用户今天是否已经搜索过这个路径
+    const existingLog = await prisma.userSearchLog.findUnique({
+      where: {
+        path_userHash_date: {
+          path,
+          userHash,
+          date: today
+        }
+      }
+    });
+
+    // 如果用户今天已经搜索过这个路径，则不重复记录
+    if (existingLog) {
+      return new NextResponse(
+        JSON.stringify({
+          success: true,
+          message: '搜索记录已存在（今日已记录）'
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // 记录用户搜索日志（用于去重）
+    await prisma.userSearchLog.create({
+      data: {
+        path,
+        userHash,
+        date: today
+      }
+    });
+
     // 记录搜索到数据库
     await prisma.searchRecord.create({
       data: {
         path,
         category: category || '未分类',
-        userAgent: request.headers.get('user-agent'),
-        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
+        userAgent,
+        ip
       }
     });
 
