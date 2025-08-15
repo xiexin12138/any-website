@@ -19,9 +19,12 @@ const getTodayString = (): string => {
 const getTrendingSearches = async (limit: number, category?: string) => {
   const where = {
     isDeleted: false, // 过滤被软删除的内容
+    count: {
+      gt: 1
+    },
     ...(category && category !== 'all' ? { category } : {})
   };
-  
+
   return await prisma.trendingSearch.findMany({
     where,
     orderBy: [
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
       }),
       {
         status: 200,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=300' // 缓存5分钟
         }
