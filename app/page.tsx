@@ -37,7 +37,7 @@ export default function Home() {
   const fetchTrendingSearches = async () => {
     try {
       setIsLoadingTrending(true);
-      const response = await fetch('/api/trending?limit=10');
+      const response = await fetch('/api/trending?limit=12');
       if (response.ok) {
         const data = await response.json();
         setTrendingSearches(data.data || []);
