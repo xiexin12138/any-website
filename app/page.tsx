@@ -74,32 +74,8 @@ export default function Home() {
       const cleanPath = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
       const fullUrl = `/${cleanPath}`;
       
-      // 打开新页面
-      const newWindow = window.open(fullUrl, '_blank');
-      
-      // 只在生产环境记录搜索数据
-      if (process.env.NODE_ENV === 'production' && newWindow) {
-        // 等待页面加载完成后再记录
-        setTimeout(async () => {
-          try {
-            // 检查页面是否成功加载（简单检查窗口是否还存在且未关闭）
-            if (!newWindow.closed) {
-              await fetch('/api/trending', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  path: cleanPath,
-                  category: '用户搜索'
-                }),
-              });
-            }
-          } catch (error) {
-            console.error('记录搜索失败:', error);
-          }
-        }, 2000); // 等待2秒确保页面有足够时间加载
-      }
+      // 打开新页面（搜索记录将在渲染页面完成时自动记录）
+      window.open(fullUrl, '_blank');
     }
   };
 
