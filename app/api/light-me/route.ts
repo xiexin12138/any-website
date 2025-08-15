@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // 从环境变量获取配置
 const apiEndpoint = process.env.SILICON_FLOW_API_ENDPOINT;
 const apiKey = process.env.SILICON_FLOW_API_KEY;
-const model = process.env.SILICON_FLOW_MODEL;
+const model = process.env.SILICON_FLOW_FREE_MODEL;
 
 export async function POST(request: NextRequest) {
   try {
