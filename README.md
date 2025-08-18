@@ -91,8 +91,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key_here"
 
 #### 📈 分析工具配置（可选）
 ```env
-# 网站访问统计
-NEXT_PUBLIC_ANALYTICS_URL=https://analytics.gptnb.xyz/js/script.js
+# 网站访问统计, 使用的是开源 项目 plausible
+NEXT_PUBLIC_ANALYTICS_URL=https://your-analytics-url/js/script.js
 ```
 
 > 💡 **提示**：
