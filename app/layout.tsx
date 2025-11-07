@@ -17,6 +17,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8FP8487D9V"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-8FP8487D9V');
+          `}
+        </Script>
+      </head>
       <body className="antialiased">
         {children}
         {analyticsUrl && (
