@@ -42,6 +42,13 @@ export function useStreamData(path: string): UseStreamDataReturn {
       abortControllerRef.current.abort();
     }
 
+    // 立即同步重置状态，避免路由过渡期间旧数据残留导致重复浮标
+    setIsLoading(true);
+    setError(null);
+    setStreamData("");
+    setRenderStage("designing");
+    setCurrentStepIndex(0);
+
     // 创建新的AbortController
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -52,11 +59,6 @@ export function useStreamData(path: string): UseStreamDataReturn {
 
     const processStream = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-        setStreamData("");
-        accumulatedContent = ""; // 重置累积内容
-        setCurrentStepIndex(0); // 重置当前步骤
 
         // 发起流式请求
         const requestBody: StreamRequest = {

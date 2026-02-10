@@ -73,8 +73,9 @@ export default function StreamRenderer({ path }: StreamRendererProps) {
         error={error} 
       />
 
-      {/* 可拖动的加载浮标 */}
+      {/* 可拖动的加载浮标 — key={path} 确保路径变化时销毁旧实例 */}
       <DraggableLoadingIndicator
+        key={path}
         isLoading={isLoading}
         streamData={streamData}
         renderStage={renderStage}
