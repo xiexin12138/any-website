@@ -20,13 +20,9 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
   const fullPath = slug.join("/");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto py-8 px-4">
-
-        {/* 客户端组件用于渲染流式数据 */}
-        <StreamRenderer path={fullPath} />
-        {/* </div>*/}
-      </div>
+    <div className="min-h-screen">
+      {/* 客户端组件用于渲染流式数据 */}
+      <StreamRenderer path={fullPath} />
     </div>
   );
 }

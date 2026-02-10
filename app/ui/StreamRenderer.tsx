@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useStreamData } from "./hooks/useStreamData";
-import ShadowDOMRenderer from "./components/ShadowDOMRenderer";
+import IframeRenderer from "./components/IframeRenderer";
 import DesignStageIndicator from "./components/DesignStageIndicator";
 import StreamErrorDisplay from "./components/StreamErrorDisplay";
 import DraggableLoadingIndicator from "./DraggableLoadingIndicator";
@@ -59,14 +59,16 @@ export default function StreamRenderer({ path }: StreamRendererProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <>
       {/* 设计阶段界面 */}
       {renderStage === "designing" && isLoading && (
-        <DesignStageIndicator currentStepIndex={currentStepIndex} />
+        <div className="px-4 py-8">
+          <DesignStageIndicator currentStepIndex={currentStepIndex} />
+        </div>
       )}
 
-      {/* Shadow DOM容器 */}
-      <ShadowDOMRenderer 
+      {/* iframe 渲染容器 — 无间距，贴边显示 */}
+      <IframeRenderer 
         streamData={streamData} 
         error={error} 
       />
@@ -77,6 +79,6 @@ export default function StreamRenderer({ path }: StreamRendererProps) {
         streamData={streamData}
         renderStage={renderStage}
       />
-    </div>
+    </>
   );
 }
