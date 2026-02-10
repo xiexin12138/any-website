@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+
+// next/font/google 会在构建时下载字体文件并自托管到项目域名下
+// 运行时不依赖 Google CDN，中国大陆用户也能正常加载
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["300", "500", "700"],
+  display: "swap",
+  variable: "--font-display",
+});
 
 const hostUrl = process.env.NEXT_PUBLIC_HOST_URL;
 const analyticsUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL;
@@ -16,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className={spaceGrotesk.variable}>
       <body className="antialiased">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8FP8487D9V"
