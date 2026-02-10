@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
+import { isBot } from '@/app/lib/botDetection';
+import { isValidSearchPath } from '@/app/lib/pathFilter';
 
 // 从环境变量获取配置
 const apiEndpoint = process.env.SILICON_FLOW_API_ENDPOINT;
@@ -30,6 +31,24 @@ export async function POST(request: NextRequest) {
     // 验证path参数
     if (!path || typeof path !== 'string') {
       return new NextResponse('缺少path参数或格式不正确', { status: 400 });
+    }
+
+    // 爬虫检测：检查请求体中的 userAgent
+    if (!userAgent || isBot(userAgent)) {
+      console.warn(`[bot-filter][stream] 爬虫请求被拒绝: path=${path} | UA: ${(userAgent || '').substring(0, 100)}`);
+      return new NextResponse(
+        JSON.stringify({ error: '请求被拒绝', message: '不支持自动化工具访问' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 路径合法性校验
+    if (!isValidSearchPath(path)) {
+      console.warn(`[bot-filter][stream] 非法路径被拒绝: path=${path}`);
+      return new NextResponse(
+        JSON.stringify({ error: '路径无效', message: '请求的路径不合法' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log("🚀 ~ stream ~ path:", path);

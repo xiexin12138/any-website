@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import crypto from 'crypto';
+import { isValidSearchPath } from '@/app/lib/pathFilter';
 
 // 生成用户标识哈希
 const generateUserHash = (ip: string | null, userAgent: string | null): string => {
@@ -96,6 +97,21 @@ export async function POST(request: NextRequest) {
         }),
         {
           status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // 路径合法性校验：过滤爬虫产生的无效路径
+    if (!isValidSearchPath(path)) {
+      console.warn(`[bot-filter][trending] 非法路径被跳过: path=${path}`);
+      return new NextResponse(
+        JSON.stringify({
+          success: true,
+          message: '路径不符合记录条件（已跳过）'
+        }),
+        {
+          status: 200,
           headers: { 'Content-Type': 'application/json' }
         }
       );
