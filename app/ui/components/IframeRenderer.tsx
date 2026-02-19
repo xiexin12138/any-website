@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 interface IframeRendererProps {
   streamData: string;
   error: string | null;
+  onNavigate?: (href: string) => void;
 }
 
 /**
@@ -34,6 +35,7 @@ const BODY_RESET_STYLE = `<style>body{margin:0;padding:0}</style>`;
 export default function IframeRenderer({
   streamData,
   error,
+  onNavigate,
 }: IframeRendererProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeHeight, setIframeHeight] = useState<number>(200);
@@ -88,6 +90,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; p
     return content;
   }, [streamData, error]);
 
+  // 拦截 iframe 内链接点击，在父窗口导航而非 iframe 内部导航
+  const handleLinkClick = useCallback((e: MouseEvent) => {
+    const anchor = (e.target as HTMLElement).closest?.('a');
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href');
+    if (!href) return;
+
+    // 锚点链接保持 iframe 内跳转
+    if (href.startsWith('#')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    onNavigate?.(href);
+    window.location.href = href;
+  }, [onNavigate]);
+
   // 通过 document.write 写入 iframe 内容，并从父侧监听高度变化
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -102,12 +122,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; p
       observerRef.current = null;
     }
 
+    let linkClickHandler: ((e: MouseEvent) => void) | null = null;
+    let iframeDoc: Document | null = null;
+
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
         doc.open();
         doc.write(content);
         doc.close();
+
+        iframeDoc = doc;
+
+        // 拦截 iframe 内所有链接点击，防止 iframe 内导航产生多个浮标
+        linkClickHandler = handleLinkClick;
+        doc.addEventListener('click', linkClickHandler, true);
 
         // 立即测量一次高度
         const measure = () => measureHeight(doc);
@@ -142,7 +171,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; p
       // 如果 contentDocument 不可访问（跨域限制），回退到 srcdoc
       iframe.srcdoc = content;
     }
-  }, [buildContent, measureHeight]);
+
+    return () => {
+      if (linkClickHandler && iframeDoc) {
+        try {
+          iframeDoc.removeEventListener('click', linkClickHandler, true);
+        } catch {
+          // contentDocument 可能已不可访问
+        }
+      }
+    };
+  }, [buildContent, measureHeight, handleLinkClick]);
 
   // 组件卸载时清理 ResizeObserver
   useEffect(() => {
