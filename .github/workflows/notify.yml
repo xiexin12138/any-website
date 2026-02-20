@@ -2,8 +2,8 @@ name: Star and Fork Notifier
 
 # 1. 触发条件：当有人点赞 (star) 或派生 (fork) 时触发
 on:
-  star:
-    types: [created]
+  watch:
+    types: [started]
   fork:
 
 # 2. 执行任务
@@ -23,7 +23,7 @@ jobs:
           # 3. 判断当前触发的是 Star 还是 Fork
           ACTION_TEXT="操作"
           ACTION_TITLE=""
-          if [ "$EVENT_NAME" == "star" ]; then
+          if [ "$EVENT_NAME" == "watch" ]; then
             ACTION_TEXT="🌟 刚刚 Star 了"
             ACTION_TITLE="仓库【$REPO】收到 star 了"
           elif [ "$EVENT_NAME" == "fork" ]; then
