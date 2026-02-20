@@ -34,6 +34,10 @@ jobs:
           # 4. 拼接要发送的消息文本
           MESSAGE="太棒了！用户 [$ACTOR] $ACTION_TEXT 你的项目: $REPO。"
 
-          # 5. 发送 HTTP POST 请求到你的 Webhook (这里以通用的飞书/钉钉 JSON 格式为例)
-          # 注意：不同的推送服务，请求体 (data) 的字段格式可能不同，请根据你的服务商文档修改
-          curl -X GET $WEBHOOK_URL/$ACTION_TITLE/$MESSAGE
+          # 5. 对 title 和 message 进行 URL 编码，避免中文/emoji/空格导致请求失败
+          ENCODED_TITLE=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$ACTION_TITLE'''))")
+          ENCODED_MESSAGE=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$MESSAGE'''))")
+
+          # 6. 发送通知（Bark 风格的 GET 请求: /key/title/body）
+          # 注意：不同的推送服务格式可能不同，请根据你的服务商文档修改
+          curl -s -o /dev/null -w "%{http_code}" -X GET "$WEBHOOK_URL/$ENCODED_TITLE/$ENCODED_MESSAGE"
