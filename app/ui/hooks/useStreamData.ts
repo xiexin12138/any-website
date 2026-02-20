@@ -54,13 +54,31 @@ export function useStreamData(path: string): UseStreamDataReturn {
     abortControllerRef.current = controller;
 
     let buffer = "";
-    let accumulatedContent = ""; // 累积HTML内容
-    let isAborted = false; // 标记是否被中断
+    let accumulatedContent = "";
+    let isAborted = false;
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastFlushTime = 0;
+    // 节流间隔：控制 iframe doc.write() 频率，避免 Tailwind CDN 脚本反复重新执行阻塞渲染
+    const FLUSH_INTERVAL_MS = 300;
+
+    const flushStreamData = () => {
+      flushTimer = null;
+      lastFlushTime = Date.now();
+      setStreamData(accumulatedContent);
+    };
+
+    const scheduleFlush = () => {
+      if (flushTimer) return;
+      const elapsed = Date.now() - lastFlushTime;
+      if (elapsed >= FLUSH_INTERVAL_MS) {
+        flushStreamData();
+      } else {
+        flushTimer = setTimeout(flushStreamData, FLUSH_INTERVAL_MS - elapsed);
+      }
+    };
 
     const processStream = async () => {
       try {
-
-        // 发起流式请求
         const requestBody: StreamRequest = {
           path,
           userAgent: navigator.userAgent
@@ -78,7 +96,6 @@ export function useStreamData(path: string): UseStreamDataReturn {
         if (!response.ok) {
           const errorText = await response.text();
           
-          // 尝试解析错误信息
           let errorMessage = `API请求失败: ${response.status}`;
           try {
             const errorData = JSON.parse(errorText);
@@ -86,7 +103,6 @@ export function useStreamData(path: string): UseStreamDataReturn {
               errorMessage = errorData.message;
             }
           } catch {
-            // 如果无法解析JSON，使用原始错误文本
             if (errorText) {
               errorMessage = errorText;
             }
@@ -107,64 +123,45 @@ export function useStreamData(path: string): UseStreamDataReturn {
 
           if (done) break;
 
-          // 解码新的数据块
           buffer += decoder.decode(value, { stream: true });
 
-          // 处理完整的数据行
           const lines = buffer.split("\n");
-          buffer = lines.pop() || ""; // 保留不完整的行
-          
-          console.log(
-            "🚀 ~ processStream ~ accumulatedContent:",
-            accumulatedContent
-          );
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
             if (line.trim() === "") continue;
-            console.log("🚀 ~ processStream ~ line:", line)
 
-            // 处理SSE格式：data: {json数据}
             if (line.startsWith("data: ")) {
-              const jsonStr = line.substring(6); // 移除 "data: " 前缀
+              const jsonStr = line.substring(6);
 
-              // 检查是否是结束标记
               if (jsonStr.trim() === "[DONE]") {
                 continue;
               }
 
               try {
-                // 尝试解析JSON数据
                 const data = JSON.parse(jsonStr);
 
-                // 检查是否是硅基流动API的响应格式
                 if (data.choices && data.choices[0] && data.choices[0].delta) {
                   const delta = data.choices[0].delta;
 
-                  // 只处理content字段
                   if (delta.content) {
-                    // 累积HTML内容到字符串
                     accumulatedContent += delta.content;
 
-                    // 检测渲染阶段
                     if (renderStage === "designing") {
-                      // 检查是否包含完整的HTML结构
                       const hasHtmlTag = accumulatedContent.includes("<html");
                       const hasHeadTag = accumulatedContent.includes("<head");
                       const hasBodyTag = accumulatedContent.includes("<body");
 
-                      // 如果同时包含html、head、body标签，说明开始进入HTML结构阶段
                       if (hasHtmlTag && hasHeadTag && hasBodyTag) {
                         setRenderStage("coding");
                       }
                     }
 
-                    // 更新状态 - 累积HTML字符串
-                    setStreamData((prev) => prev + delta.content);
+                    scheduleFlush();
                   }
                 } else {
-                  // 如果不是硅基流动API格式，尝试作为普通文本处理
                   accumulatedContent += JSON.stringify(data);
-                  setStreamData((prev) => prev + JSON.stringify(data));
+                  scheduleFlush();
                 }
               } catch (parseError) {
                 console.error(
@@ -173,25 +170,27 @@ export function useStreamData(path: string): UseStreamDataReturn {
                   "原始数据:",
                   jsonStr
                 );
-                // 如果JSON解析失败，作为纯文本处理
                 accumulatedContent += jsonStr;
-                setStreamData((prev) => prev + jsonStr);
+                scheduleFlush();
               }
             } else {
-              // 如果不是SSE格式，作为普通文本处理
               accumulatedContent += line;
-              setStreamData((prev) => prev + line);
+              scheduleFlush();
             }
           }
         }
 
-        // 只有在没有被中断的情况下才设置加载完成
         if (!isAborted) {
+          // 流结束时立即刷新最终内容
+          if (flushTimer) {
+            clearTimeout(flushTimer);
+            flushTimer = null;
+          }
+          setStreamData(accumulatedContent);
           setRenderStage("completed");
           setIsLoading(false);
         }
       } catch (err) {
-        // 如果是AbortError，不显示错误，因为这是正常的取消操作
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
@@ -208,6 +207,7 @@ export function useStreamData(path: string): UseStreamDataReturn {
 
     return () => {
       clearTimeout(timeoutId);
+      if (flushTimer) clearTimeout(flushTimer);
       isAborted = true;
       controller.abort();
     };

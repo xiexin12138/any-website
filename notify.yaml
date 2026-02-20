@@ -1,0 +1,39 @@
+name: Star and Fork Notifier
+
+# 1. 触发条件：当有人点赞 (star) 或派生 (fork) 时触发
+on:
+  star:
+    types: [created]
+  fork:
+
+# 2. 执行任务
+jobs:
+  notify:
+    runs-on: ubuntu-latest # 运行环境
+    steps:
+      - name: Send Notification
+        # 引入我们在 Settings 里配置的 Secret 以及 GitHub 内置的环境变量
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}          # 触发动作的人 (谁 fork/star 的)
+          REPO: ${{ github.repository }}      # 当前仓库名称
+          REPO_URL: ${{ github.event.repository.html_url }} # 仓库链接
+        run: |
+          # 3. 判断当前触发的是 Star 还是 Fork
+          ACTION_TEXT="操作"
+          ACTION_TITLE=""
+          if [ "$EVENT_NAME" == "star" ]; then
+            ACTION_TEXT="🌟 刚刚 Star 了"
+            ACTION_TITLE="仓库【$REPO】收到 star 了"
+          elif [ "$EVENT_NAME" == "fork" ]; then
+            ACTION_TEXT="🍴 刚刚 Fork 了"
+            ACTION_TITLE="仓库【$REPO】收到 fork 了"
+          fi
+
+          # 4. 拼接要发送的消息文本
+          MESSAGE="太棒了！用户 [$ACTOR] $ACTION_TEXT 你的项目: $REPO。"
+
+          # 5. 发送 HTTP POST 请求到你的 Webhook (这里以通用的飞书/钉钉 JSON 格式为例)
+          # 注意：不同的推送服务，请求体 (data) 的字段格式可能不同，请根据你的服务商文档修改
+          curl -X GET $WEBHOOK_URL/$ACTION_TITLE/$MESSAGE
