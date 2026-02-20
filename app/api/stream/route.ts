@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
         ],
         stream: true,
         max_tokens: maxTokens,
+        chat_template_kwargs: { enable_thinking: false },
       }),
     }
 
