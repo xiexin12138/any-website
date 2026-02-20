@@ -34,10 +34,10 @@ jobs:
           # 4. 拼接要发送的消息文本
           MESSAGE="太棒了！用户 [$ACTOR] $ACTION_TEXT 你的项目: $REPO。"
 
-          # 5. 对 title 和 message 进行 URL 编码，避免中文/emoji/空格导致请求失败
-          ENCODED_TITLE=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$ACTION_TITLE'''))")
-          ENCODED_MESSAGE=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$MESSAGE'''))")
+          # 5. 对 title 和 message 进行 URL 编码（safe='' 确保 / 等所有特殊字符都被编码）
+          ENCODED_TITLE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))" <<< "$ACTION_TITLE")
+          ENCODED_MESSAGE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))" <<< "$MESSAGE")
 
           # 6. 发送通知（Bark 风格的 GET 请求: /key/title/body）
           # 注意：不同的推送服务格式可能不同，请根据你的服务商文档修改
-          curl -s -o /dev/null -w "%{http_code}" -X GET "$WEBHOOK_URL/$ENCODED_TITLE/$ENCODED_MESSAGE"
+          curl -s -w "\nHTTP Status: %{http_code}\n" -X GET "$WEBHOOK_URL/$ENCODED_TITLE/$ENCODED_MESSAGE"
