@@ -14,7 +14,7 @@ jobs:
       - name: Send Notification
         # 引入我们在 Settings 里配置的 Secret 以及 GitHub 内置的环境变量
         env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_URL: ${{ secrets.BARK_URL }}
           EVENT_NAME: ${{ github.event_name }}
           ACTOR: ${{ github.actor }}          # 触发动作的人 (谁 fork/star 的)
           REPO: ${{ github.repository }}      # 当前仓库名称
